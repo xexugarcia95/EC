@@ -5,8 +5,8 @@
 #include <stdlib.h>	// para exit()
 #include <sys/time.h>	// para gettimeofday(), struct timeval
 
-#define TEST		0
-#define COPY_PASTE_CALC 1
+#define TEST		1
+#define COPY_PASTE_CALC 0
 //for((i=0;i<11;i++));do echo $i;./parity;done | pr -11 -l 20 -w 80
 #if ! TEST
   #define NBITS 20
@@ -14,7 +14,7 @@
   unsigned lista[SIZE]; //unsigned para que desplazamiento derecha sea lógico
   #define RESULT (1<<NBITS-1) //nueva fórmula
 #else	
-/*--------------------------------------------------------------------*/
+/*--------------------------------------------------------------------*
   #define SIZE 4
   unsigned lista[SIZE]={0x80000000,0x00100000,0x00000800,0x00000001};
   #define RESULT 4
@@ -87,17 +87,15 @@ int parity4(unsigned *array,int len)
   int i,val,res=0;
   unsigned x;
   for(i=0;i<len;i++){
-    do{
-      val ^=x;
-      x >>=1;
-    }while(x);
+    x=array[i];
+    val=0;
     asm(
      "ini3:	      		\n\t"	//traducción casi literal
-     "   xor %[x],%[val] 	\n\t"	// sólo nos interesa LSB
+     "   xor %[x],%[v] 	\n\t"	// sólo nos interesa LSB
      "   shr $1, %[x]	    		\n\t"
      "   test %[x], %[x]	      		\n\t"
      "	 jnz ini3			\n\t"
-      : [val]"+r" (val)		// e/s:	empieza siendo cero
+      : [v]"+r" (val)		// e/s:	empieza siendo cero
       : [x]"r"  (x)		// entrada: valor elemento
     );
     res+=val & 0x1;
@@ -105,19 +103,18 @@ int parity4(unsigned *array,int len)
     return res;
 }
 
-int parity5(unsigned *array,int len)
-{
-  int i,j,val,res=0;
-  unsigned x;
-  for(i=0;i<len;i++){
-    x=array[i];
-    for(j=16;j==1;j/=2){
-      x^= x>>j;
-    }
-    res+= x & 0x01;
-  }
-
-return res;
+int parity5(unsigned* array,int len){
+	int i,j;
+	unsigned long long res=0;
+	unsigned x;
+	for(i=0;i<len;i++){
+		x=array[i];
+		for(j=16;j>=1;j/=2){
+			x^=x>>j;
+		}
+		res+=(x & 0x01);
+	}
+	return res;
 }
 
 int parity6(unsigned* array,int len)
