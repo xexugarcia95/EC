@@ -5,8 +5,8 @@
 #include <stdlib.h>	// para exit()
 #include <sys/time.h>	// para gettimeofday(), struct timeval
 
-#define TEST		0
-#define COPY_PASTE_CALC 1
+#define TEST		1
+#define COPY_PASTE_CALC 0
 
 #if ! TEST
   #define NBITS 20
@@ -14,7 +14,7 @@
   unsigned lista[SIZE]; //unsigned para que desplazamiento derecha sea lógico
   #define RESULT (NBITS*(1<<NBITS-1)) //nueva fórmula
 #else
-/*--------------------------------------------------------------------------*
+/*--------------------------------------------------------------------------*/
   #define SIZE 4
   unsigned lista[SIZE]={0x80000000,0x00100000,0x00000800,0x00000001};
   #define RESULT 4
