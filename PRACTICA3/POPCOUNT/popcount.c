@@ -5,8 +5,8 @@
 #include <stdlib.h>	// para exit()
 #include <sys/time.h>	// para gettimeofday(), struct timeval
 
-#define TEST		0
-#define COPY_PASTE_CALC 1
+#define TEST		1
+#define COPY_PASTE_CALC 0
 
 #if ! TEST
   #define NBITS 20
@@ -14,12 +14,12 @@
   unsigned lista[SIZE]; //unsigned para que desplazamiento derecha sea lógico
   #define RESULT (NBITS*(1<<NBITS-1)) //nueva fórmula
 #else
-/*--------------------------------------------------------------------------*
+/*--------------------------------------------------------------------------*/
   #define SIZE 4
   unsigned lista[SIZE]={0x80000000,0x00100000,0x00000800,0x00000001};
   #define RESULT 4
 /*--------------------------------------------------------------------------*
-  #define SIZE 
+  #define SIZE 8
   unsigned lista[SIZE]={0x7fffffff,0xffefffff,0xfffff7ff,0xfffffffe,0x01000024,0x00356700,0x8900ac00,0x00bd00ef};
   #define RESULT 156
 /*--------------------------------------------------------------------------*
@@ -34,11 +34,13 @@ int popcount1(int* array, int len)
 {
     int  i,res=0,j;
     unsigned x;
-    for (i=0; i<len; i++)
+    for (i=0; i<len; i++){
 	x=array[i];
-	for(j=0;j<8*sizeof(unsigned);j++)
+	for(j=0;j<8*sizeof(unsigned);j++){
 	 res+= x & 0x1;
 	 x>>=1;
+	}
+    }
     return res;
 }
 
@@ -47,12 +49,13 @@ int popcount2(int* array, int len)
 {
     int  i,   res=0;
     unsigned x;
-    for (i=0; i<len; i++)
+    for (i=0; i<len; i++){
 	x=array[i];
 	do{
 	 res+= x & 0x1;
 	 x>>=1;
 	}while(x);
+    }
     return res;
 } 
 
@@ -75,20 +78,21 @@ int popcount3(int* array, int len)
    return res;
 }
 
-int popcount4(unsigned* array,int len)
-{
-	int i,j,val,res=0;
+//popcount 4 -> libro hallaron problema 3.49 resuelto p.364int popcount4(unsigned* array,int len)
+int popcount4(int* array,int len){
+	int i,j,res=0;
 	unsigned x;
 	for(i=0;i<len;i++){ 
+	 unsigned long long val=0; //utilizar long long en vez de int, el programa pita con : warning: right shift count >= width of type
 	 x=array[i];
 	 for(j=0;j<8;j++){
 	 	val+= x & 0x01010101;
 		x>>=1;
 	 }
+	 val += (val >> 32);
 	 val += (val >> 16);
-	 val += (val >> 8);
-	 res += (val & 0xff);
-	  	
+	 val += (val >> 8);  
+	 res+= (val & 0xFF);
 	}
 	
 	return res;
@@ -154,24 +158,24 @@ int popcount7(unsigned* array,int len)
 {
 	int i,val,result=0;
 	unsigned x1,x2;
-	if(len & 0x1)
+	if(len & 0x1){
 	   printf("leer 64b y len impar=\n");
+	}
     	for(i=0;i<len;i+=2){
 	  x1=array[i];
 	  x2=array[i+1];
 	  asm("popcnt %[x1], %[val] \n\t"
-	      "popcnt %[x2], %[val] \n\t"
-	      "add    %%edi, %[val] \n\t"
-	   : [val] "=&r" (val)
-	   :  [x1]   "r" (x1),
-	      [x2]   "r" (x2)
- 	   : "edi");
+	      		"popcnt %[x2], %%edi \n\t"
+	      		"add    %%edi, %[val] \n\t"
+	   		: [val] "=&r" (val)
+	   		:  [x1]   "r" (x1),
+	   		[x2]   "r" (x2)
+ 	   		: "edi"
+	 );
 	  result+=val;
 	}
 	return result;
 }
-
-//popcount 4 -> libro hallaron problema 3.49 resuelto p.364
 
 
 
